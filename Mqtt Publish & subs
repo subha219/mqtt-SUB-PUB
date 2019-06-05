@@ -1,0 +1,127 @@
+using System;
+using System.Text;
+using uPLibrary.Networking.M2Mqtt;
+using uPLibrary.Networking.M2Mqtt.Messages;
+
+namespace MQTT_DotNetCore.Models
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public class Mqttclient_handler : IDisposable
+    {
+        private MqttClient client = null;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="Topic"></param>
+        /// <param name="message"></param>
+        /// <param name="willRetain"></param>
+        /// <param name="willQosLevel"></param>
+        /// <param name="willFlag"></param>
+        /// <param name="willTopic"></param>
+        /// <param name="willMessage"></param>
+        /// <param name="cleanSession"></param>
+        /// <param name="keepAlivePeriod"></param>
+        /// <returns></returns>
+        public bool MqttConnect(string username, string password, string Topic, string message, bool willRetain = false, byte willQosLevel = 1, bool willFlag = false, string willTopic = null, string willMessage = null, bool cleanSession = true, ushort keepAlivePeriod = 60)
+        {
+            bool status = true;
+            string serveur = "18.221.77.229";
+            string clientid = Guid.NewGuid().ToString();
+            willTopic = "Test";
+            client = new MqttClient(serveur);
+            //client.MqttMsgSubscribed += Client_MqttMsgSubscribed;
+            //client.MqttMsgUnsubscribed += Client_MqttMsgUnsubscribed;
+            //client.MqttMsgPublishReceived += Client_MqttMsgPublishReceived;
+            try
+            {
+                if (username != null)
+                    client.Connect(clientid, username, password);
+                if (client.IsConnected == true)
+                {
+                    ushort response = client.Publish(Topic, Encoding.UTF8.GetBytes(message), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, false);
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return client.IsConnected;
+        }
+        /// <summary>
+        /// MQTT TOPIC SUBSCRIBE
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="topic"></param>
+        /// <returns></returns>
+        public ushort MQTTSubscribe(string username, string password, string topic)
+        {
+            string serveur = "18.221.77.229";
+            string clientid = Guid.NewGuid().ToString();
+            client = new MqttClient(serveur);
+            client.MqttMsgPublishReceived += Client_MqttMsgPublishReceived;
+            client.Connect(clientid, username, password);
+            var response = client.Subscribe(new string[] { topic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
+            return response;
+        }
+        private void Client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
+        {
+            string ReceivedMessage = Encoding.UTF8.GetString(e.Message);
+        }
+        private void Client_MqttMsgUnsubscribed(object sender, MqttMsgUnsubscribedEventArgs e)
+        {
+            Console.WriteLine(e.MessageId);
+        }
+        private string Client_MqttMsgSubscribed(object sender, MqttMsgPublishEventArgs e)
+        {
+            string responsereceived = Encoding.UTF8.GetString(e.Message);
+            return "";
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsConnected
+        {
+            get
+            {
+                return client != null && client.IsConnected;
+            }
+        }
+        public void publish(string topic, string message, byte qos, bool retain = false)
+        {
+            client.Publish(topic, Encoding.UTF8.GetBytes(message), qos, retain);
+        }
+        #region IDisposable Support
+        private bool disposedValue = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                }
+                if (this.client != null)
+                {
+                    if (this.client.IsConnected)
+                        this.client.Disconnect();
+                    this.client = null;
+                }
+                disposedValue = true;
+            }
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
+
+    }
+}
