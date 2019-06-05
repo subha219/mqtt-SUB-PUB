@@ -29,7 +29,7 @@ namespace MQTT_DotNetCore.Models
         public bool MqttConnect(string username, string password, string Topic, string message, bool willRetain = false, byte willQosLevel = 1, bool willFlag = false, string willTopic = null, string willMessage = null, bool cleanSession = true, ushort keepAlivePeriod = 60)
         {
             bool status = true;
-            string serveur = "18.221.77.229";
+            string serveur = "your server ip";
             string clientid = Guid.NewGuid().ToString();
             willTopic = "Test";
             client = new MqttClient(serveur);
@@ -64,7 +64,7 @@ namespace MQTT_DotNetCore.Models
         /// <returns></returns>
         public ushort MQTTSubscribe(string username, string password, string topic)
         {
-            string serveur = "18.221.77.229";
+            string serveur = "your server ip";
             string clientid = Guid.NewGuid().ToString();
             client = new MqttClient(serveur);
             client.MqttMsgPublishReceived += Client_MqttMsgPublishReceived;
